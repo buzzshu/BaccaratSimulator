@@ -84,7 +84,7 @@ def play_game_from_shoe(shoe):
             return "Tie"
 
 
-def simulate_strategy(rounds=10000, base_bet=10, strategy="fixed", initial_funds=10000,
+def simulate_strategy(rounds=1000, base_bet=10, strategy="fixed", initial_funds=10000,
                       bet_target="Player", rebate_rate=0.0):
     shoe = create_shoe()
     balance = initial_funds
@@ -127,7 +127,7 @@ def simulate_strategy(rounds=10000, base_bet=10, strategy="fixed", initial_funds
 
     return total_bet, total_payout, total_rebate
 
-def batch_simulate(batch_size=100, rounds_per_sim=10000, base_bet=10,
+def batch_simulate(batch_size=100, rounds_per_sim=1000, base_bet=10,
                    strategy="fixed", initial_funds=10000, bet_target="Player", rebate_rate=0.0):
     rtp_list = []
     for _ in range(batch_size):
@@ -165,7 +165,7 @@ def simulate():
     data = request.json
     result = batch_simulate(
         batch_size=int(data.get("batch_size", 100)),
-        rounds_per_sim=int(data.get("rounds_per_sim", 10000)),
+        rounds_per_sim=int(data.get("rounds_per_sim", 1000)),
         base_bet=int(data.get("base_bet", 10)),
         strategy=data.get("strategy", "fixed"),
         initial_funds=int(data.get("initial_funds", 10000)),
