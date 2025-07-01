@@ -48,16 +48,30 @@ def play_game_from_shoe(shoe):
         player_third, banker_third = [], []
 
         if total(player) <= 5:
-            if not shoe:
+            if len(shoe) == 0:
                 shoe[:] = create_shoe()
-            player_third = [shoe.pop()]
-            player.append(player_third[0])
+            try:
+                card = shoe.pop()
+                if card is not None:
+                    player_third = [card]
+                    player.append(card)
+            except IndexError:
+                continue
 
         if banker_draws(banker, player_third):
-            if not shoe:
+            if len(shoe) == 0:
                 shoe[:] = create_shoe()
-            banker_third = [shoe.pop()]
-            banker.append(banker_third[0])
+            try:
+                card = shoe.pop()
+                if card is not None:
+                    banker_third = [card]
+                    banker.append(card)
+            except IndexError:
+                continue
+
+        # 確保沒有 None 值進入 total()
+        if any(c is None for c in player + banker):
+            continue
 
         p_total = total(player)
         b_total = total(banker)
@@ -68,6 +82,7 @@ def play_game_from_shoe(shoe):
             return "Banker"
         else:
             return "Tie"
+
 
 def simulate_strategy(rounds=10000, base_bet=10, strategy="fixed", initial_funds=10000,
                       bet_target="Player", rebate_rate=0.0):
