@@ -33,28 +33,41 @@ def create_shoe(num_decks=8):
     return shoe
 
 def play_game_from_shoe(shoe):
-    if len(shoe) < 6:
-        shoe[:] = create_shoe()
-    player = [shoe.pop(), shoe.pop()]
-    banker = [shoe.pop(), shoe.pop()]
-    player_third, banker_third = [], []
+    while True:
+        if len(shoe) < 6:
+            shoe[:] = create_shoe()
+            continue
 
-    if total(player) <= 5:
-        player_third = [shoe.pop()]
-        player.append(player_third[0])
-    if banker_draws(banker, player_third):
-        banker_third = [shoe.pop()]
-        banker.append(banker_third[0])
+        try:
+            player = [shoe.pop(), shoe.pop()]
+            banker = [shoe.pop(), shoe.pop()]
+        except IndexError:
+            shoe[:] = create_shoe()
+            continue
 
-    p_total = total(player)
-    b_total = total(banker)
+        player_third, banker_third = [], []
 
-    if p_total > b_total:
-        return "Player"
-    elif b_total > p_total:
-        return "Banker"
-    else:
-        return "Tie"
+        if total(player) <= 5:
+            if not shoe:
+                shoe[:] = create_shoe()
+            player_third = [shoe.pop()]
+            player.append(player_third[0])
+
+        if banker_draws(banker, player_third):
+            if not shoe:
+                shoe[:] = create_shoe()
+            banker_third = [shoe.pop()]
+            banker.append(banker_third[0])
+
+        p_total = total(player)
+        b_total = total(banker)
+
+        if p_total > b_total:
+            return "Player"
+        elif b_total > p_total:
+            return "Banker"
+        else:
+            return "Tie"
 
 def simulate_strategy(rounds=10000, base_bet=10, strategy="fixed", initial_funds=10000,
                       bet_target="Player", rebate_rate=0.0):
