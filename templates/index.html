@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>百家樂模擬器</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 200px; }
+    #result { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>百家樂模擬器</h1>
+
+  <label>玩家數（批次模擬次數）：
+    <input type="number" id="batch_size" value="100">
+  </label>
+
+  <label>每位玩家遊玩局數：
+    <input type="number" id="rounds_per_sim" value="10000">
+  </label>
+
+  <label>每把投注金額：
+    <input type="number" id="base_bet" value="10">
+  </label>
+
+  <label>起始資金：
+    <input type="number" id="initial_funds" value="10000">
+  </label>
+
+  <label>投注策略：
+    <select id="strategy">
+      <option value="fixed">固定投注</option>
+      <option value="martingale">馬丁格爾</option>
+    </select>
+  </label>
+
+  <label>投注對象：
+    <select id="bet_target">
+      <option value="Player">閒</option>
+      <option value="Banker">莊</option>
+      <option value="Follow">跟注</option>
+    </select>
+  </label>
+
+  <label>返水比例（0.005 = 0.5%）：
+    <input type="number" id="rebate_rate" step="0.001" value="0.005">
+  </label>
+
+  <button onclick="runSimulation()">開始模擬</button>
+
+  <div id="result"></div>
+  <canvas id="rtpChart" width="600" height="300"></canvas>
+
+  <script>
+    async function runSimulation() {
+      const data = {
+        batch_size: document.getElementById("batch_size").value,
+        rounds_per_sim: document.getElementById("rounds_per_sim").value,
+        base_bet: document.getElementById("base_bet").value,
+        initial_funds: document.getElementById("initial_funds").value,
+        strategy: document.getElementById("strategy").value,
+        bet_target: document.getElementById("bet_target").value,
+        rebate_rate: document.getElementById("rebate_rate").value,
+      };
+
+      const res = await fetch("/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      document.getElementById("result").innerHTML = `
+        <h3>模擬結果：</h3>
+        RTP > 100% 比例： ${(result.over_100_ratio * 100).toFixed(2)}%<br>
+        平均 RTP：${result.avg_rtp.toFixed(4)}<br>
+        最低 RTP：${result.min_rtp.toFixed(4)}<br>
+        最高 RTP：${result.max_rtp.toFixed(4)}<br>
+      `;
+
+      drawChart(result.rtp_list);
+    }
+
+    function drawChart(rtpList) {
+      const ctx = document.getElementById("rtpChart").getContext("2d");
+      const bins = Array(20).fill(0);
+      for (let rtp of rtpList) {
+        let i = Math.min(Math.floor(rtp * 20), 19);
+        bins[i]++;
+      }
+
+      const labels = Array.from({ length: 20 }, (_, i) => `${(i / 20).toFixed(2)} ~ ${(i + 1) / 20}`);
+      if (window.rtpChartInstance) rtpChartInstance.destroy();
+
+      window.rtpChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'RTP 分布',
+            data: bins,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
